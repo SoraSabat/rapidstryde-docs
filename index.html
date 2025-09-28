@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>RapidStryde — Fast, reliable downloads from streaming sites</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="RapidStryde Download Manager — capture HLS/DASH, replay headers & cookies, and hand off to a local helper (yt-dlp/wget2) for reliable downloads."
+    />
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+      body {
+        margin: 0;
+        background: #0f0f0f;
+        color: #eee;
+        font: 16px/1.6 system-ui, -apple-system, Segoe UI, Roboto, Arial,
+          sans-serif;
+      }
+      .wrap {
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 24px;
+      }
+      .hero {
+        display: grid;
+        gap: 14px;
+        padding: 24px 0 10px;
+      }
+      .h {
+        font-size: 30px;
+        font-weight: 900;
+        margin: 0;
+      }
+      .lead {
+        opacity: 0.9;
+      }
+      .row {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .btn {
+        display: inline-block;
+        border-radius: 10px;
+        padding: 12px 14px;
+        text-decoration: none;
+        font-weight: 800;
+        border: 1px solid #2b2b2b;
+        background: #1a1a1a;
+        color: #fff;
+      }
+      .btn:hover {
+        background: #232323;
+      }
+      .primary {
+        background: #00a3ff;
+        color: #001018;
+        border-color: #00a3ff;
+      }
+      .card {
+        background: #141414;
+        border: 1px solid #262626;
+        border-radius: 14px;
+        padding: 16px;
+        margin: 18px 0;
+      }
+      ul {
+        margin: 8px 0 0 20px;
+      }
+      code {
+        background: #1b1b1b;
+        padding: 2px 6px;
+        border-radius: 6px;
+        border: 1px solid #2a2a2a;
+      }
+      .muted {
+        opacity: 0.75;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+      @media (max-width: 900px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      footer {
+        text-align: center;
+        padding: 24px 0;
+        opacity: 0.7;
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <section class="hero">
+        <h1 class="h">RapidStryde Download Manager</h1>
+        <p class="lead">
+          Capture HLS/DASH requests, replay the exact headers & cookies, and
+          hand off to a local helper (yt-dlp / wget2) — so downloads work on
+          sites that block naive grabs.
+        </p>
+        <div class="row">
+          <!-- Fill your actual CWS URL when published -->
+          <a class="btn primary" href="#" id="cws"
+            >Install from Chrome Web Store</a
+          >
+          <a class="btn" href="privacy/" target="_blank" rel="noopener"
+            >Privacy Policy</a
+          >
+          <a class="btn" href="support/" target="_blank" rel="noopener"
+            >Support</a
+          >
+          <a class="btn" href="#donate">Donate</a>
+          <a
+            class="btn"
+            href="https://github.com/SoraSabat/rapidstryde-docs"
+            target="_blank"
+            rel="noopener"
+            >GitHub</a
+          >
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>How it works</h2>
+        <div class="grid">
+          <div>
+            <h3>Stream capture</h3>
+            <ul>
+              <li>
+                Intercepts <code>.m3u8</code>/<code>.mpd</code> with
+                <code>webRequest</code>.
+              </li>
+              <li>
+                Collects needed headers (<code>Referer</code>,
+                <code>Origin</code>, <code>User-Agent</code>, language, etc).
+              </li>
+              <li>
+                Finds the right referer (including iframes/player hosts) using
+                <code>webNavigation.getAllFrames</code>.
+              </li>
+            </ul>
+          </div>
+          <div>
+            <h3>Reliable downloads</h3>
+            <ul>
+              <li>
+                Sends a canonical plan to a local helper (yt-dlp or wget2).
+              </li>
+              <li>
+                Also re-routes direct files (MP4/ZIP/PDF/…) via
+                <code>chrome.downloads</code> for proper headers + cookies.
+              </li>
+              <li>No analytics, no tracking, no remote storage.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Permissions (why we need them)</h2>
+        <ul>
+          <li>
+            <code>webRequest</code> + <code>host_permissions</code>: to see
+            HLS/DASH requests and their headers.
+          </li>
+          <li>
+            <code>webNavigation</code>: to enumerate frames and resolve the real
+            embed/player origin for <code>Referer</code>.
+          </li>
+          <li>
+            <code>tabs</code>: to read the active tab’s URL + title (used in
+            filenames and helper metadata).
+          </li>
+          <li>
+            <code>cookies</code>: to forward session cookies for the same
+            origins when the helper fetches media.
+          </li>
+          <li>
+            <code>downloads</code> (+ <code>downloads.shelf</code>): re-route
+            direct file downloads so they don’t fail on referer/origin checks.
+          </li>
+          <li>
+            <code>scripting</code>: injects the overlay UI and a tiny page-world
+            script that surfaces player URLs.
+          </li>
+        </ul>
+        <p class="muted">
+          Everything stays on your machine; nothing is uploaded to a server I
+          control.
+        </p>
+      </section>
+
+      <section id="donate" class="card">
+        <h2>Donate / Support</h2>
+        <p class="muted">
+          PayPal “Donate” requires a business account in India. Easiest options:
+          UPI, Stripe Payment Link, Ko-fi, Buy Me a Coffee, or GitHub Sponsors.
+        </p>
+        <div class="row" id="drow"></div>
+        <p>UPI VPA: <code id="vpa">yourname@bank</code></p>
+        <img
+          id="qr"
+          alt="UPI QR"
+          style="margin-top: 6px; border: 1px solid #2b2b2b; border-radius: 8px"
+        />
+      </section>
+    </div>
+
+    <footer>
+      © <span id="yr"></span> RapidStryde —
+      <a href="privacy/" style="color: #9bd3ff">Privacy</a> •
+      <a href="support/" style="color: #9bd3ff">Support</a>
+    </footer>
+
+    <script>
+      // Fill your Web Store URL after publish:
+      // document.getElementById('cws').href = 'https://chromewebstore.google.com/detail/xxxxxxxx';
+
+      // Donation config (edit)
+      const DONO = {
+        upi: { vpa: "yourname@bank", name: "Your Name" },
+        stripe: "https://buy.stripe.com/XXXXXXXX", // optional (Stripe Payment Link)
+        bmc: "https://www.buymeacoffee.com/YOURID", // optional
+        kofi: "https://ko-fi.com/YOURID", // optional
+        github: "https://github.com/sponsors/YOUR_GH_USERNAME", // optional
+        paypalMe: "", // PayPal.me likely requires Business in India; keep empty if not available
+        paypalDonate: "", // Donate button needs Business; keep empty if not available
+      };
+
+      function addBtn(parent, text, href) {
+        if (!href) return;
+        const a = document.createElement("a");
+        a.className = "btn";
+        a.href = href;
+        a.target = "_blank";
+        a.rel = "noopener";
+        a.textContent = text;
+        parent.appendChild(a);
+      }
+      const row = document.getElementById("drow");
+      const upiDeep = `upi://pay?pa=${encodeURIComponent(
+        DONO.upi.vpa
+      )}&pn=${encodeURIComponent(DONO.upi.name)}&cu=INR`;
+      addBtn(row, "UPI (Open App)", upiDeep);
+      addBtn(row, "Stripe", DONO.stripe);
+      addBtn(row, "Buy Me a Coffee", DONO.bmc);
+      addBtn(row, "Ko-fi", DONO.kofi);
+      addBtn(row, "GitHub Sponsors", DONO.github);
+      addBtn(row, "PayPal", DONO.paypalMe || DONO.paypalDonate);
+
+      document.getElementById("vpa").textContent = DONO.upi.vpa;
+      // Quick QR using qrserver.com (free). Replace with your own image anytime.
+      const qr = document.getElementById("qr");
+      qr.src =
+        "https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=" +
+        encodeURIComponent(upiDeep);
+
+      document.getElementById("yr").textContent = new Date().getFullYear();
+    </script>
+  </body>
+</html>
